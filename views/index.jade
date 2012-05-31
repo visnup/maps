@@ -1,0 +1,36 @@
+extends layout
+
+block content
+  :stylus
+    html, body
+      height 100%
+    #map
+      height 100%
+    .controls
+      position fixed
+      z-index 1
+      left 50%
+      margin-left -253px
+      background-color hsla(0, 0%, 100%, 0.8)
+      padding 5px
+      border-bottom-right-radius 2px
+      border-bottom-left-radius 2px
+      form
+        display inline
+      input, button
+        margin 0 2px
+      input[type=text]
+        width 400px
+
+  .controls
+    form: input( type="text", name="q", autofocus=true, value=q, placeholder="Search or Address" )
+    button /
+
+  script( type="text/javascript", src="//maps.googleapis.com/maps/api/js?key=AIzaSyAhjJMxgwP33Z6qnoAPDO-OeXOgcIePgS8&libraries=places&sensor=true" )
+  script( type="text/javascript", src="//code.jquery.com/jquery.min.js" )
+  script( type="text/javascript", src="//documentcloud.github.com/underscore/underscore-min.js" )
+  script( type="text/javascript", src="//backbonejs.org/backbone-min.js" )
+
+  script( type="text/javascript", src="/javascripts/application.js" )
+  script( type="text/javascript" )
+    window.app = new App
