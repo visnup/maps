@@ -94,6 +94,7 @@ class Map extends Backbone.View
       new gmaps.Marker
         position: geometry.location
         title: m.get('name') || m.get('formatted_address')
+        icon: 'images/pin.png'
         map: map
 
     current = map.getBounds()
