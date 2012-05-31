@@ -69,8 +69,7 @@ class Map extends Backbone.View
       @model.set bounds: @map.getBounds()
 
   pan: (e) ->
-    og = e.originalEvent
-    @map.panBy -og.wheelDeltaX, -og.wheelDeltaY
+    @map.panBy -e.wheelDeltaX, -e.wheelDeltaY
     false
 
   center: ->
@@ -110,12 +109,12 @@ class Controls extends Backbone.View
     'click button': 'center'
 
   initialize: ->
-    @autocomplete = new gmaps.places.Autocomplete @$(':text')[0]
+    @autocomplete = new gmaps.places.Autocomplete @$('input')[0]
     @model.on 'change:bounds', @setBounds, this
 
   submit: (e) ->
     e.preventDefault()
-    @collection.search @$(':text').val()
+    @collection.search @$('input').val()
 
   center: (e) ->
     e.preventDefault()
