@@ -120,7 +120,8 @@ class Map extends Backbone.View
     false
 
   center: ->
-    @map.setCenter @model.getLatLng()
+    setCenter = if @map.getCenter() then 'panTo' else 'setCenter'
+    @map[setCenter] @model.getLatLng()
     @map.setZoom @model.getZoom()
 
   render: ->
