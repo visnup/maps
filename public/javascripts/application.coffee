@@ -167,8 +167,12 @@ class Map extends Backbone.View
     gmaps.event.addListener @map, 'bounds_changed', =>
       @model.set bounds: @map.getBounds()
     gmaps.event.addListener @map, 'click', =>
-      @model.set selected: false
-      @collection.invoke 'set', selected: false
+      @clickTimeout = setTimeout =>
+        @model.set selected: false
+        @collection.invoke 'set', selected: false
+      , 300
+    gmaps.event.addListener @map, 'dblclick', =>
+      clearTimeout @clickTimeout
 
   pan: (e) ->
     @map.panBy -e.wheelDeltaX, -e.wheelDeltaY
