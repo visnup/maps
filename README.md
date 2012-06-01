@@ -1,9 +1,13 @@
 # Maps for modern browsers
 
-- geolocate your position
-  - directions from current position
-  - watchPosition
-- 2d scroll = pan
-- pinch = zoom (impossible?)
-- mo map mo map
+- always geolocate your position
+  - directions assume from current position
+- 2d scrolling is panning
+- pinch to zoom
+- more map, less ui
 - maps.gooogle.com url compatible (set /etc/hosts)
+
+# TODO
+
+- directions
+- autocomplete select uses cache
