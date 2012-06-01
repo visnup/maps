@@ -48,8 +48,8 @@ class Me extends Place
       new gmaps.LatLng coords.latitude, coords.longitude
 
   getZoom: ->
-    coords = @get 'coords'
-    Math.round(coords.accuracy * 0.11 + 10) # 100 = 21; 0 = 10
+    if coords = @get 'coords'
+      Math.round(coords.accuracy * 0.11 + 10) # 100 = 21; 0 = 10
 
   getPosition: ->
     geo = navigator.geolocation
