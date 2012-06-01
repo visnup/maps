@@ -1,17 +1,13 @@
 gmaps = google.maps
 
+gmaps.LatLngBounds.prototype.containsBounds = (latLngBounds) ->
+  clone = new gmaps.LatLngBounds @getSouthWest(), @getNorthEast()
+  clone.union(latLngBounds).equals(this)
+
 class Me extends Backbone.Model
   initialize: ->
-    geo = navigator.geolocation
-    geo.getCurrentPosition (position) =>
-      @set position
-      @trigger 'reset'
-    , ->
-      console.log arguments
-    , maximumAge: 60000, timeout: 1000
-
-    geo.watchPosition (position) =>
-      @set position
+    @getPosition()
+    @on 'change:coords', _.debounce(@reverseGeocode, 5000), this
 
   getLatLng: ->
     coords = @get 'coords'
@@ -21,28 +17,73 @@ class Me extends Backbone.Model
     coords = @get 'coords'
     Math.round(coords.accuracy * 0.11 + 10) # 100 = 21; 0 = 10
 
-class Markers extends Backbone.Collection
+  getPosition: ->
+    geo = navigator.geolocation
+    geo.getCurrentPosition (position) =>
+      @set position
+      @trigger 'reset'
+    , null, maximumAge: 60000, timeout: 1000
+
+    geo.watchPosition (position) =>
+      @set position
+
+  reverseGeocode: ->
+    geocoder = new gmaps.Geocoder
+    geocoder.geocode latLng: @getLatLng(), (result, status) =>
+      @set name: result[0]?.formatted_address
+
+class Places extends Backbone.Collection
   search: (q, bounds = map.getBounds()) ->
-    console.log 'search:', q, bounds
+    @reset()
     places = new gmaps.places.PlacesService map
     places.search keyword: q, bounds: bounds, (result, status) =>
-      console.log result
       if result.length > 0
         @reset result
       else
         geocoder = new gmaps.Geocoder
         geocoder.geocode address: q, bounds: bounds, (result, status) =>
-          console.log result
           @reset result
+
+class Popup extends gmaps.OverlayView
+  constructor: (options) ->
+    @model = options.model
+    @marker = options.marker
+
+    @addListeners()
+
+  addListeners: ->
+    gmaps.event.addListenerOnce @marker, 'click', _.bind(@show, this)
+
+  show: ->
+    map = @marker.getMap()
+    gmaps.event.trigger map, 'click'
+    @setMap map
+  hide: -> @setMap null
+
+  onAdd: ->
+    @$el = $('<div class="popup">')
+      .text(@model.get('name') || @model.get('formatted_address'))
+      .appendTo(@getPanes().floatPane)
+    gmaps.event.addListenerOnce @getMap(), 'click', _.bind(@hide, this)
+
+  onRemove: ->
+    @$el.remove()
+
+  draw: ->
+    pos = @getProjection().fromLatLngToDivPixel @marker.getPosition()
+    @$el.css left: pos.x - @$el.width()/2, top: pos.y
 
 class MeDot extends Backbone.View
   initialize: ->
     @model.on 'change', @render, this
 
   render: ->
-    @marker ||= new gmaps.Marker
-      icon: 'images/dot.png'
-      map: map
+    unless @marker
+      @marker = new gmaps.Marker
+        icon: 'images/dot.png'
+        map: map
+      new Popup model: @model, marker: @marker
+
     @marker.setPosition @model.getLatLng()
 
     this
@@ -77,6 +118,7 @@ class Map extends Backbone.View
     @map.setZoom @model.getZoom()
 
   render: ->
+    gmaps.event.trigger map, 'click'
     m.setMap(null) for m in @markers? && @markers || []
 
     bounds = new gmaps.LatLngBounds
@@ -87,19 +129,20 @@ class Map extends Backbone.View
         bounds.union geometry.viewport
       else
         bounds.extend geometry.location
-        bounds.extend @model.getLatLng()
+        #bounds.extend @model.getLatLng()
 
-      console.log m
-      new gmaps.Marker
+      marker = new gmaps.Marker
         position: geometry.location
         title: m.get('name') || m.get('formatted_address')
         icon: 'images/pin.png'
         map: map
+      new Popup model: m, marker: marker
 
-    current = map.getBounds()
-    current = new gmaps.LatLngBounds current.getSouthWest(), current.getNorthEast()
-    unless bounds.isEmpty() || current.union(bounds).equals(map.getBounds())
-      @map.fitBounds bounds
+      marker
+
+    if !bounds.isEmpty()
+      @map.fitBounds(bounds) unless map.getBounds().containsBounds(bounds)
+      gmaps.event.trigger @markers[0], 'click'
 
     this
 
@@ -126,16 +169,16 @@ class Controls extends Backbone.View
 class window.App extends Backbone.Router
   initialize: ->
     @me = new Me
-    @markers = new Markers
+    @places = new Places
 
     @controls = new Controls
       model: @me
-      collection: @markers
+      collection: @places
       el: $('.controls')[0]
 
     @map = new Map
       model: @me
-      collection: @markers
+      collection: @places
     @map.$el.appendTo document.body
 
     @me.on 'reset', _.once(@parseParams), this
@@ -148,5 +191,5 @@ class window.App extends Backbone.Router
 
     if @params.q
       setTimeout =>
-        @markers.search @params.q
+        @places.search @params.q
       , 50
