@@ -195,16 +195,40 @@ class Map extends Backbone.View
 
 class Controls extends Backbone.View
   events:
-    'submit form': 'submit'
-    'click button': 'locate'
+    'click button.search': 'toggle'
+    'click button.directions': 'toggle'
+
+    'submit form.search': 'search'
+    'submit form.directions': 'route'
+
+    'click button.locate': 'locate'
 
   initialize: ->
     @autocomplete = new gmaps.places.Autocomplete @$('input')[0]
-    @model.on 'change:bounds', @onBoundsChange, this
 
-  submit: (e) ->
+    @model.on 'change:bounds', @onBoundsChange, this
+    @collection.on 'change:selected', @onSelectedChange, this
+
+  toggle: (e) ->
+    @$('form').hide()
+      .filter(".#{e.target.className}").css('display', 'inline')
+
+  search: (e) ->
     e.preventDefault()
     @collection.search @$('input').val()
+
+  route: (e) ->
+    e.preventDefault()
+    directions = new gmaps.DirectionsService
+    directions.route
+      origin: @model.getLatLng()
+      destination: @collection.selected().getLatLng()
+      travelMode: gmaps.TravelMode.DRIVING
+    , (result, status) =>
+      console.log result, status
+      renderer = new gmaps.DirectionsRenderer
+        directions: result
+        map: map
 
   locate: (e) ->
     e.preventDefault()
@@ -212,6 +236,9 @@ class Controls extends Backbone.View
 
   onBoundsChange: ->
     @autocomplete.setBounds map.getBounds()
+
+  onSelectedChange: ->
+    @$('[name=to]').val @collection.selected()?.get('name')
 
 class window.App extends Backbone.Router
   initialize: ->

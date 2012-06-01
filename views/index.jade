@@ -12,18 +12,23 @@ block content
       position fixed
       z-index 1
       left 50%
-      margin-left -225px
+      margin-left -308px
       background-color hsla(0, 0%, 100%, 0.8)
       padding 5px
       border-bottom-right-radius 2px
       border-bottom-left-radius 2px
       form
         display inline
+      form.search
+        input[type=text]
+          width 400px
+      form.directions
+        display none
+        input[type=text]
+          width 191px
       input, button
         margin 0 2px
         padding 5px
-      input[type=text]
-        width 400px
 
     .pac-container
       padding 3px
@@ -51,8 +56,16 @@ block content
       margin-top -70px
 
   .controls
-    form: input( type="text", name="q", autofocus=true, value=q, placeholder="Search or Address" )
-    button ➚
+    button.search Search
+    button.directions Directions
+    form.search
+      input( type="text", name="q", autofocus=true, value=q, placeholder="Search or Address" )
+      input( type="submit", value="Search" )
+    form.directions
+      input( type="text", name="from", autofocus=true, value="Current Location", placeholder="From" )
+      input( type="text", name="to", placeholder="To" )
+      input( type="submit", value="Route" )
+    button.locate ➚
 
   script( type="text/javascript", src="//maps.googleapis.com/maps/api/js?key=AIzaSyAhjJMxgwP33Z6qnoAPDO-OeXOgcIePgS8&libraries=places&sensor=true" )
   script( type="text/javascript", src="/javascripts/zepto.js" )
