@@ -7,7 +7,7 @@ gmaps.LatLngBounds.prototype.containsBounds = (latLngBounds) ->
 class Me extends Backbone.Model
   initialize: ->
     @getPosition()
-    @on 'change:coords', _.debounce(@reverseGeocode, 5000), this
+    @on 'change:coords', _.debounce(@reverseGeocode, 5000, true), this
 
   getLatLng: ->
     coords = @get 'coords'
@@ -52,17 +52,23 @@ class Popup extends gmaps.OverlayView
     @addListeners()
 
   addListeners: ->
-    gmaps.event.addListenerOnce @marker, 'click', _.bind(@show, this)
+    @model.on 'change:name', ((model, text) -> @setText text), this
+    gmaps.event.addListener @marker, 'click', _.bind(@show, this)
 
   show: ->
     map = @marker.getMap()
     gmaps.event.trigger map, 'click'
     @setMap map
-  hide: -> @setMap null
+
+  hide: ->
+    @setMap null
+
+  setText: (text) ->
+    @$el?.text text
 
   onAdd: ->
     @$el = $('<div class="popup">')
-      .text(@model.get('name') || @model.get('formatted_address'))
+      .text(@model.get('name') || @model.get('formatted_address') || '?')
       .appendTo(@getPanes().floatPane)
     gmaps.event.addListenerOnce @getMap(), 'click', _.bind(@hide, this)
 
