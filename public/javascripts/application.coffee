@@ -200,7 +200,7 @@ class Controls extends Backbone.View
 
   initialize: ->
     @autocomplete = new gmaps.places.Autocomplete @$('input')[0]
-    @model.on 'change:bounds', @setBounds, this
+    @model.on 'change:bounds', @onBoundsChange, this
 
   submit: (e) ->
     e.preventDefault()
@@ -210,7 +210,7 @@ class Controls extends Backbone.View
     e.preventDefault()
     @model.trigger 'reset', e
 
-  setBounds: ->
+  onBoundsChange: ->
     @autocomplete.setBounds map.getBounds()
 
 class window.App extends Backbone.Router
