@@ -77,9 +77,6 @@ class Places extends Backbone.Collection
   selected: ->
     @find (model) -> model.get('selected')
 
-  deselectAll: ->
-    @invoke 'set', selected: false
-
   selectOne: (model, selected) ->
     if selected
       for m in @models
@@ -170,6 +167,7 @@ class Map extends Backbone.View
     gmaps.event.addListener @map, 'bounds_changed', =>
       @model.set bounds: @map.getBounds()
     gmaps.event.addListener @map, 'click', =>
+      @model.set selected: false
       @collection.invoke 'set', selected: false
 
   pan: (e) ->
@@ -227,6 +225,11 @@ class window.App extends Backbone.Router
     @map.$el.appendTo document.body
 
     @me.on 'reset', _.once(@parseParams), this
+
+    @me.on 'change:selected', (model, selected) =>
+      @places.invoke 'set', selected: false if selected
+    @places.on 'change:selected', (model, selected) =>
+      @me.set selected: false if selected
 
   parseParams: ->
     @params = {}
