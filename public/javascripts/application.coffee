@@ -25,8 +25,8 @@ class PopupOverlay extends gmaps.OverlayView
   onRemove: ->
     @$el.remove()
 
-  setText: (text) ->
-    @$el?.text text
+  setText: (@text) ->
+    @$el?.text @text
 
 
 # models
@@ -36,13 +36,12 @@ class Place extends Backbone.Model
     selected: false
 
   getTitle: -> @get('name') || @get('formatted_address')
-
   getLatLng: -> @get('geometry').location
 
 class Me extends Place
   initialize: ->
-    @on 'change:coords', _.debounce(@reverseGeocode, 5000, true), this
     @getPosition()
+    @on 'change:coords', @reverseGeocode, this
 
   getLatLng: ->
     if coords = @get 'coords'
@@ -62,10 +61,12 @@ class Me extends Place
     geo.watchPosition (position) =>
       @set position
 
-  reverseGeocode: ->
-    geocoder = new gmaps.Geocoder
-    geocoder.geocode latLng: @getLatLng(), (result, status) =>
-      @set name: result[0]?.formatted_address
+  reverseGeocode:
+    _.debounce ->
+      geocoder = new gmaps.Geocoder
+      geocoder.geocode latLng: @getLatLng(), (result, status) =>
+        @set name: result[0]?.formatted_address
+    , 5000, true
 
 class Places extends Backbone.Collection
   model: Place
