@@ -12,11 +12,19 @@ class PopupOverlay extends gmaps.OverlayView
   constructor: (options) ->
     @text = options.text
     @marker = options.marker
+    @model = options.model
 
   onAdd: ->
+    check = $('<input type="checkbox"/>')
+    check.attr('checked', @model.get('checked'))
     @$el = $('<div class="popup">')
       .text(@text || '?')
+      .prepend(check)
       .appendTo(@getPanes().floatPane)
+
+    @$el.on 'click input', (e) =>
+      e.stopPropagation()
+      @model.save checked: $(e.target).is(':checked')
 
   draw: ->
     pos = @getProjection().fromLatLngToDivPixel @marker.getPosition()
@@ -31,12 +39,20 @@ class PopupOverlay extends gmaps.OverlayView
 
 # models
 
+Backbone.Model.prototype.idAttribute = '_id'
+
 class Place extends Backbone.Model
   defaults:
     selected: false
 
+  initialize: ->
+    if latLng = @attributes.latLng
+      @set geometry: { location: new gmaps.LatLng latLng[0], latLng[1] }
+    else if latLng = @getLatLng()
+      @set latLng: [ latLng.Xa, latLng.Ya ]
+
   getTitle: -> @get('name') || @get('formatted_address')
-  getLatLng: -> @get('geometry').location
+  getLatLng: -> @get('geometry')?.location
 
 class Me extends Place
   initialize: ->
@@ -69,6 +85,7 @@ class Me extends Place
     , 5000, true
 
 class Places extends Backbone.Collection
+  url: '/favorites'
   model: Place
 
   initialize: ->
@@ -84,11 +101,11 @@ class Places extends Backbone.Collection
 
   getBounds: ->
     @reduce (bounds, model) ->
-      geometry = model.get 'geometry'
-      if geometry.viewport
-        bounds.union geometry.viewport
-      else
-        bounds.extend geometry.location
+      if geometry = model.get 'geometry'
+        if geometry.viewport
+          bounds.union geometry.viewport
+        else
+          bounds.extend geometry.location
       bounds
     , new gmaps.LatLngBounds
 
@@ -129,6 +146,7 @@ class Marker extends Backbone.View
     @overlay = new PopupOverlay
       text: @model.getTitle()
       marker: @marker
+      model: @model
 
     gmaps.event.addListener @marker, 'click', =>
       @model.set selected: true
@@ -195,12 +213,7 @@ class Map extends Backbone.View
 
 class Controls extends Backbone.View
   events:
-    'click button.search': 'toggle'
-    'click button.directions': 'toggle'
-
     'submit form.search': 'search'
-    'submit form.directions': 'route'
-
     'click button.locate': 'locate'
 
   initialize: ->
@@ -209,26 +222,9 @@ class Controls extends Backbone.View
     @model.on 'change:bounds', @onBoundsChange, this
     @collection.on 'change:selected', @onSelectedChange, this
 
-  toggle: (e) ->
-    @$('form').hide()
-      .filter(".#{e.target.className}").css('display', 'inline')
-
   search: (e) ->
     e.preventDefault()
     @collection.search @$('input').val()
-
-  route: (e) ->
-    e.preventDefault()
-    directions = new gmaps.DirectionsService
-    directions.route
-      origin: @model.getLatLng()
-      destination: @collection.selected().getLatLng()
-      travelMode: gmaps.TravelMode.DRIVING
-    , (result, status) =>
-      console.log result, status
-      renderer = new gmaps.DirectionsRenderer
-        directions: result
-        map: map
 
   locate: (e) ->
     e.preventDefault()
@@ -261,6 +257,8 @@ class window.App extends Backbone.Router
       @places.invoke 'set', selected: false if selected
     @places.on 'change:selected', (model, selected) =>
       @me.set selected: false if selected
+
+    @places.fetch()
 
   parseParams: ->
     @params = {}
