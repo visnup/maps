@@ -222,6 +222,7 @@ class Controls extends Backbone.View
   events:
     'submit form.search': 'search'
     'click button.locate': 'locate'
+    'click button.favorites': 'favorites'
 
   initialize: ->
     @autocomplete = new gmaps.places.Autocomplete @$('input')[0]
@@ -234,8 +235,10 @@ class Controls extends Backbone.View
     @collection.search @$('input').val()
 
   locate: (e) ->
-    e.preventDefault()
     @model.trigger 'reset', e
+
+  favorites: (e) ->
+    @collection.fetch()
 
   onBoundsChange: ->
     @autocomplete.setBounds map.getBounds()
