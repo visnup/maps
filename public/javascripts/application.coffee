@@ -14,17 +14,18 @@ class PopupOverlay extends gmaps.OverlayView
     @marker = options.marker
     @model = options.model
 
+    @model.on 'change:checked', @setStar, this
+
   onAdd: ->
-    check = $('<input type="checkbox"/>')
-    check.attr('checked', @model.get('checked'))
     @$el = $('<div class="popup">')
       .text(@text || '?')
-      .prepend(check)
+      .prepend('<i class="icon-star-empty"></i>')
       .appendTo(@getPanes().floatPane)
+    @setStar()
 
-    @$el.on 'click input', (e) =>
+    @$el.on 'click i', (e) =>
       e.stopPropagation()
-      @model.save checked: $(e.target).is(':checked')
+      @model.save checked: !@model.get('checked')
 
   draw: ->
     pos = @getProjection().fromLatLngToDivPixel @marker.getPosition()
@@ -35,6 +36,12 @@ class PopupOverlay extends gmaps.OverlayView
 
   setText: (@text) ->
     @$el?.text @text
+
+  setStar: ->
+    checked = @model.get 'checked'
+    @$el.find('i')
+      .toggleClass('icon-star', checked)
+      .toggleClass('icon-star-empty', !checked)
 
 
 # models
@@ -206,7 +213,7 @@ class Map extends Backbone.View
     @markers = @collection.map (model) -> new Marker model: model
 
     if !(bounds = @collection.getBounds()).isEmpty()
-      @map.fitBounds(bounds) unless map.getBounds().containsBounds(bounds)
+      @map.fitBounds(bounds) unless map.getBounds()?.containsBounds(bounds)
       @collection.first()?.set selected: true
 
     this

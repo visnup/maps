@@ -55,14 +55,16 @@ block content
       box-shadow 0 5px 5px hsla(0, 0%, 50%, 0.5), inset 0 1px 0 hsla(0, 0%, 100%, 0.2)
       margin-top -70px
 
-      input
+      i
         margin-right 0.5ex
+        color yellow
+        cursor pointer
 
   .controls
     form.search
       input( type="text", name="q", autofocus=true, value=q, placeholder="Search or Address" )
       input( type="submit", value="Search" )
-    button.locate ➚
+    button.locate: i.icon-globe
 
   script( type="text/javascript", src="//maps.googleapis.com/maps/api/js?key=AIzaSyAhjJMxgwP33Z6qnoAPDO-OeXOgcIePgS8&libraries=places&sensor=true" )
   script( type="text/javascript", src="/javascripts/zepto.js" )
