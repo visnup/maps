@@ -173,6 +173,8 @@ class Map extends Backbone.View
       , 300
     gmaps.event.addListener @map, 'dblclick', =>
       clearTimeout @clickTimeout
+    gmaps.event.addListener @map, 'rightclick', =>
+      @map.setZoom @map.getZoom()-1
 
   pan: (e) ->
     @map.panBy -e.wheelDeltaX, -e.wheelDeltaY
