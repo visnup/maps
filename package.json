@@ -11,9 +11,11 @@
   },
   "dependencies": {
     "coffee-script": "*",
+    "connect-assets": "*",
     "express": "*",
     "jade": "*",
-    "stylus": "*"
+    "stylus": "*",
+    "nib": "*"
   },
   "subdomain": "maps",
   "engines": {

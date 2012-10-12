@@ -195,8 +195,7 @@ class Map extends Backbone.View
 
 class Controls extends Backbone.View
   events:
-    'click button.search': 'toggle'
-    'click button.directions': 'toggle'
+    'click .mode button': 'toggle'
 
     'submit form.search': 'search'
     'submit form.directions': 'route'
@@ -205,13 +204,17 @@ class Controls extends Backbone.View
 
   initialize: ->
     @autocomplete = new gmaps.places.Autocomplete @$('input')[0]
+    @$('input').eq(0).focus()
 
     @model.on 'change:bounds', @onBoundsChange, this
     @collection.on 'change:selected', @onSelectedChange, this
 
-  toggle: (e) ->
-    @$('form').hide()
-      .filter(".#{e.target.className}").css('display', 'inline')
+  toggle: ->
+    active = @$('.mode button').toggleClass('active').filter('.active')
+    @$('form')
+      .hide()
+      .filter(".#{active.val()}").css('display', 'inline')
+      .find('input').eq(0).focus()
 
   search: (e) ->
     e.preventDefault()

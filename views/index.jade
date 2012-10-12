@@ -1,71 +1,22 @@
 extends layout
 
 block content
-  :stylus
-    html, body
-      height 100%
-
-    #map
-      height 100%
-
-    .controls
-      position fixed
-      z-index 1
-      left 50%
-      margin-left -308px
-      background-color hsla(0, 0%, 100%, 0.8)
-      padding 5px
-      border-bottom-right-radius 2px
-      border-bottom-left-radius 2px
-      form
-        display inline
-      form.search
-        input[type=text]
-          width 400px
-      form.directions
-        display none
-        input[type=text]
-          width 191px
-      input, button
-        margin 0 2px
-        padding 5px
-
-    .pac-container
-      padding 3px
-      box-shadow 0 5px 5px hsla(0, 0%, 50%, 0.5)
-    .pac-item
-      font-size small
-      line-height 150%
-      color gray
-      b
-        color black
-
-    .popup
-      position absolute
-      max-width 200px
-      border-radius 5px
-      background hsla(0, 0%, 0%, 0.8) -webkit-linear-gradient(top, hsla(0, 0%, 100%, 0.1) 0%, hsla(0, 0%, 100%, 0.1) 50%, hsla(0, 0%, 0%, 0.1) 50%, hsla(0, 0%, 0%, 0.1) 100%)
-      border solid 1px hsla(0, 0%, 0%, 0.6)
-      color white
-      text-shadow 0 -1px 0 hsla(0, 0%, 0%, 0.8)
-      padding 10px
-      white-space nowrap
-      overflow hidden
-      text-overflow ellipsis
-      box-shadow 0 5px 5px hsla(0, 0%, 50%, 0.5), inset 0 1px 0 hsla(0, 0%, 100%, 0.2)
-      margin-top -70px
-
   .controls
-    button.search Search
-    button.directions Directions
+    .mode.button-group
+      button.active( value='search' )
+        i.icon-search
+        | Search
+      button( value='directions' )
+        i.icon-road
+        | Directions
     form.search
-      input( type="text", name="q", autofocus=true, value=q, placeholder="Search or Address" )
+      input( type="text", name="q", value=q, placeholder="Search or Address" )
       input( type="submit", value="Search" )
     form.directions
-      input( type="text", name="from", autofocus=true, value="Current Location", placeholder="From" )
+      input( type="text", name="from", value="Current Location", placeholder="From" )
       input( type="text", name="to", placeholder="To" )
       input( type="submit", value="Route" )
-    button.locate ➚
+    button.locate: i.icon-globe
 
   script( type="text/javascript", src="//maps.googleapis.com/maps/api/js?key=AIzaSyAhjJMxgwP33Z6qnoAPDO-OeXOgcIePgS8&libraries=places&sensor=true" )
   script( type="text/javascript", src="/javascripts/zepto.js" )
